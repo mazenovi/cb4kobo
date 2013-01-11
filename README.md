@@ -10,18 +10,22 @@ prerequisite
 ------------
 you'll need the following packages
 
-# sudo apt-get install p7zip-full p7zip-rar imagemagick
+``` bash
+$ sudo apt-get install p7zip-full p7zip-rar imagemagick
+```
 
 usage
 -----
 
-bash cd4kobo.sh my-cb-file.cbr
+``` bash
+$ bash cd4kobo.sh my-cb-file.cbr
+```
 
 option
 ------
 
--r{'ltr'|'rtl'}: specify reading direction of the source
--o: optimize image for Kobo devices
+* `-r{'ltr'|'rtl'}`: specify reading direction of the source
+* `-o`: optimize image for Kobo devices
 
 todo
 ----
