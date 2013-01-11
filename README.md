@@ -35,7 +35,7 @@ todo
 
 see also
 --------
-
+* http://en.wikipedia.org/wiki/Comic_book_archive
 * http://linuxfr.org/users/yodaz/journaux/mini-shell-script-pour-optimiser-des-images-pour-une-liseuse
 * http://www.admin6.fr/2011/03/passage-propre-darguments-en-script-shell/
 
