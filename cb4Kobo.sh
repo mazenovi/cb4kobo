@@ -1,11 +1,15 @@
 #!/bin/sh
 
+# see also http://linuxfr.org/users/yodaz/journaux/mini-shell-script-pour-optimiser-des-images-pour-une-liseuse
+# see also http://www.admin6.fr/2011/03/passage-propre-darguments-en-script-shell/
+# sudo apt-get install p7zip-fullp7zip-rar imagemagick
+
 TOLERANCE=4%
 JPG_QUALITY=75
 SIZE=600x800
 TMP_DIR=/tmp/koboTest
 INPUT_COMIC_TYPE=.cbr
-READING_DIRECTION=ltr
+READING_DIRECTION=rtl
 OPTIMIZE=false
 
 FILE=${@: -1}
@@ -26,44 +30,47 @@ mkdir $TMP_DIR
 
 7z e "$FILE" -o$TMP_DIR
 
-for i in $TMP_DIR/*.jpg
+i=0
+
+for f in $TMP_DIR/*.jpg
 do
-    width=`convert "$i" -ping -format '%[fx:w]' info:`
-    height=`convert "$i" -ping -format '%[fx:h]' info:`
+    width=`convert "$f" -ping -format '%[fx:w]' info:`
+    height=`convert "$f" -ping -format '%[fx:h]' info:`
 	halfwidth=`echo "$width/2"| bc`
     windowleft=`echo "$halfwidth"x"$height"+0+0`
 	windowright=`echo "$width"x"$height"+"$halfwidth"+0`
 	if [ $width -gt $height ]
 	then
-		echo "convert $i"
-		if [ $READING_DIRECTION = "ltr" ]
+		echo "convert $f"
+		if ([ $READING_DIRECTION = "rtl" ] && [ $i -ne 0 ]) || ([ $READING_DIRECTION = "ltr" ] && [ $i -eq 0 ])
 		then
-			convert -crop $windowleft "$i" "$i".1.jpg
-			convert -crop $windowright "$i" "$i".2.jpg
-		else			
-			convert -crop $windowright "$i" "$i".1.jpg
-			convert -crop $windowleft "$i" "$i".2.jpg
+			convert -crop $windowright "$f" "$f".1.jpg
+			convert -crop $windowleft "$f" "$f".2.jpg			
+		else
+			convert -crop $windowleft "$f" "$f".1.jpg
+			convert -crop $windowright "$f" "$f".2.jpg			
 		fi
-		rm "$i"
+		rm "$f"
+		i=$(($i + 1))
 	else
-		echo "no crop for $i"
+		echo "no crop for $f"
 	fi
 
 	if [ $OPTIMIZE = true ]
 	then	
-		if [ -f "$i" ]
+		if [ -f "$f" ]
 		then 
-			echo "optimize $i"
-			convert "$i" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$i"
+			echo "optimize $f"
+			convert "$f" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$f"
 		else
-			echo "optimize $i.1.jpg"
-			convert "$i.1.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$i.1.jpg"
-			echo "optimize $i.2.jpg"
-			convert "$i.2.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$i.2.jpg"
+			echo "optimize $f.1.jpg"
+			convert "$f.1.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$f.1.jpg"
+			echo "optimize $f.2.jpg"
+			convert "$f.2.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$f.2.jpg"
 		fi
 	fi
 done
 
-7z a -tzip -w$TMP_DIR "`basename "$FILE" $INPUT_COMIC_TYPE`"-kobo.cbz $TMP_DIR/*
+7z a -tzip -w$TMP_DIR "`basename "$FILE" $fNPUT_COMIC_TYPE`"-kobo.cbz $TMP_DIR/*
 
 rm -rf $TMP_DIR

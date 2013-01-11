@@ -4,6 +4,7 @@ cb4kobo
 cbr and cbz spliter to have decent comic book size on Kobo devices.
 
 * convert any reading direction in left to right direction (the one of Kobo devixes)
+* keep cover at first
 * optimize image for Kobo devices
 
 prerequisite
@@ -30,7 +31,6 @@ option
 todo
 ----
 
-* keep cover at first
 * PyQT Version to get a real time preview
 
 see also
