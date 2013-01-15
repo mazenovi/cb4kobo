@@ -39,16 +39,67 @@ do
 	halfwidth=`echo "$width/2"| bc`
     windowleft=`echo "$halfwidth"x"$height"+0+0`
 	windowright=`echo "$width"x"$height"+"$halfwidth"+0`
+
+	without_pages=`echo $f | sed -e 's/[0-9]\+\-[0-9]\+ *\.jpg.*//'`
+	pages=`echo ${f:${#without_pages}:${#f}} | sed -e 's/ *\.jpg.*//'`
+	# get last element
+	second_page_number=`echo ${pages##*-}`
+	# get first element
+	first_page_number=`echo $pages | sed -e "s/\-${pages##*-}//"`
+
+	if [ $first_page_number -lt $second_page_number ]
+	then
+		left_page_number=$first_page_number
+		right_page_number=$second_page_number
+	else
+		left_page_number=$second_page_number
+		right_page_number=$first_page_number
+	fi
+
+	#for consistent number
+
+	if [ -n "$left_page_number" ] 
+	then
+		if [ $left_page_number -lt 100 ]
+		then
+			if [ $left_page_number -lt 10 ]
+			then
+				left_page_number=00$left_page_number	
+			else
+				left_page_number=0$left_page_number	
+			fi
+		fi
+	fi
+
+	if [ -n "$right_page_number" ]
+	then
+		if [ $right_page_number -lt 100 ]
+		then
+			if [ $right_page_number -lt 10 ]
+			then
+				right_page_number=00$right_page_number	
+			else
+				right_page_number=0$right_page_number	
+			fi
+		fi
+	fi
+
+	if [ -n $first_page_number ] && [ -z $second_page_number ]
+	then
+		left_page_number=0001
+		right_page_number=0002
+	fi
+	
 	if [ $width -gt $height ]
 	then
 		echo "convert $f"
 		if ([ $READING_DIRECTION = "rtl" ] && [ $i -ne 0 ]) || ([ $READING_DIRECTION = "ltr" ] && [ $i -eq 0 ])
 		then
-			convert -crop $windowright "$f" "$f".1.jpg
-			convert -crop $windowleft "$f" "$f".2.jpg			
+			convert -crop $windowright "$f" "$without_pages$left_page_number.jpg"
+			convert -crop $windowleft "$f" "$without_pages$right_page_number.jpg"
 		else
-			convert -crop $windowleft "$f" "$f".1.jpg
-			convert -crop $windowright "$f" "$f".2.jpg			
+			convert -crop $windowleft "$f" "$without_pages$left_page_number.jpg"
+			convert -crop $windowright "$f" "$without_pages$right_page_number.jpg"
 		fi
 		rm "$f"
 		i=$(($i + 1))
@@ -63,10 +114,10 @@ do
 			echo "optimize $f"
 			convert "$f" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$f"
 		else
-			echo "optimize $f.1.jpg"
-			convert "$f.1.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$f.1.jpg"
-			echo "optimize $f.2.jpg"
-			convert "$f.2.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$f.2.jpg"
+			echo "optimize $without_pages$left_page_number.jpg"
+			convert "$without_pages$left_page_number.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$without_pages$left_page_number.jpg"
+			echo "optimize $without_pages$right_page_number.jpg"
+			convert "$without_pages$right_page_number.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$without_pages$right_page_number.jpg"
 		fi
 	fi
 done
