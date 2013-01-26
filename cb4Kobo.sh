@@ -56,6 +56,18 @@ do
 		right_page_number=$first_page_number
 	fi
 
+	if [ -z $first_page_number ] && [ -z $second_page_number ]
+	then
+		without_pages=`echo $f | sed -e 's/[0-9]\+ *\.jpg.*//'`
+		pages=`echo ${f:${#without_pages}:${#f}} | sed -e 's/ *\.jpg.*//'`
+		# get last element
+		second_page_number=`echo "$pages*2"| bc`
+		# get first element
+		second_page_number=`echo "$pages*2+1"| bc`
+		left_page_number=`echo "$pages*2"| bc`
+		right_page_number=`echo "$pages*2+1"| bc`
+	fi
+
 	#for consistent number
 
 	if [ -n "$left_page_number" ] 
@@ -83,23 +95,17 @@ do
 			fi
 		fi
 	fi
-
-	if [ -n $first_page_number ] && [ -z $second_page_number ]
-	then
-		left_page_number=0001
-		right_page_number=0002
-	fi
 	
 	if [ $width -gt $height ]
 	then
 		echo "convert $f"
 		if ([ $READING_DIRECTION = "rtl" ] && [ $i -ne 0 ]) || ([ $READING_DIRECTION = "ltr" ] && [ $i -eq 0 ])
 		then
-			convert -crop $windowright "$f" "$without_pages$left_page_number.jpg"
-			convert -crop $windowleft "$f" "$without_pages$right_page_number.jpg"
+			convert -crop $windowright "$f" "$without_pages-kobo-$left_page_number.jpg"
+			convert -crop $windowleft "$f" "$without_pages-kobo-$right_page_number.jpg"
 		else
-			convert -crop $windowleft "$f" "$without_pages$left_page_number.jpg"
-			convert -crop $windowright "$f" "$without_pages$right_page_number.jpg"
+			convert -crop $windowleft "$f" "$without_pages-kobo-$left_page_number.jpg"
+			convert -crop $windowright "$f" "$without_pages-kobo-$right_page_number.jpg"
 		fi
 		rm "$f"
 		i=$(($i + 1))
@@ -111,13 +117,14 @@ do
 	then	
 		if [ -f "$f" ]
 		then 
-			echo "optimize $f"
-			convert "$f" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$f"
+			echo "optimize $without_pages-kobo-$left_page_number.jpg"
+			convert "$f" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$without_pages-kobo-$left_page_number.jpg"
+			rm "$f"
 		else
-			echo "optimize $without_pages$left_page_number.jpg"
-			convert "$without_pages$left_page_number.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$without_pages$left_page_number.jpg"
-			echo "optimize $without_pages$right_page_number.jpg"
-			convert "$without_pages$right_page_number.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$without_pages$right_page_number.jpg"
+			echo "optimize $without_pages-kobo-$left_page_number.jpg"
+			convert "$without_pages-kobo-$left_page_number.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$without_pages-kobo-$left_page_number.jpg"
+			echo "optimize $without_pages-kobo-$right_page_number.jpg"
+			convert "$without_pages-kobo-$right_page_number.jpg" -fuzz $TOLERANCE -quality $JPG_QUALITY -resize $SIZE -trim +repage -colorspace gray "$without_pages-kobo-$right_page_number.jpg"
 		fi
 	fi
 done
